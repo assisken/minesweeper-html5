@@ -1,20 +1,20 @@
-import { Rect } from 'react-konva'
-
-function tap() {
-  console.log('tap')
-}
+import { useState } from 'react'
+import { Image } from 'react-konva'
+import { useImage } from 'react-konva-utils'
+import mine from '../assets/svg/Minesweeper_unopened_square.svg'
+import React from 'react'
 
 export function GeneralBox() {
-  return (
-    <Rect
-      x={1}
-      y={1}
-      width={20}
-      height={20}
-      fill={'#c6c6c6'}
-      stroke={'#808080'}
-      strokeWidth={2}
-      onMouseDown={tap}
-    />
-  )
+  React.useEffect(() => {
+    setCanvgImage(image)
+  })
+
+  const [image] = useImage(mine)
+  const [canvgImage, setCanvgImage] = useState(image)
+
+  function tap() {
+    console.log('tap')
+  }
+
+  return <Image x={1} y={1} width={20} height={20} image={canvgImage} onMouseDown={tap} />
 }

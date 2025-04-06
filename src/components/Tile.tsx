@@ -14,6 +14,7 @@ import tile_5 from '../assets/svg/Minesweeper_5.svg'
 import tile_6 from '../assets/svg/Minesweeper_6.svg'
 import tile_7 from '../assets/svg/Minesweeper_7.svg'
 import tile_8 from '../assets/svg/Minesweeper_8.svg'
+import tile_mine from '../assets/svg/Minesweeper_mine.svg'
 import tile_flagged from '../assets/svg/Minesweeper_flag.svg'
 import { KonvaEventObject } from 'konva/lib/Node'
 
@@ -26,23 +27,31 @@ export function Tile({ tile }: props) {
   const height = 20
 
   const [unopenedTexture, unopenedTextureLoaded] = useImage(unopened)
+  const [tile0, tile0Loaded] = useImage(tile_0)
+  const [tile1, tile1Loaded] = useImage(tile_1)
+  const [tile2, tile2Loaded] = useImage(tile_2)
+  const [tile3, tile3Loaded] = useImage(tile_3)
+  const [tile4, tile4Loaded] = useImage(tile_4)
+  const [tile5, tile5Loaded] = useImage(tile_5)
+  const [tile6, tile6Loaded] = useImage(tile_6)
+  const [tile7, tile7Loaded] = useImage(tile_7)
+  const [tile8, tile8Loaded] = useImage(tile_8)
+  const [tileMine, tileMineLoaded] = useImage(tile_mine)
+  const [flagTexture, flagLoaded] = useImage(tile_flagged)
+
   const [image, setImage] = useState(unopenedTexture)
 
-  const [flagTexture] = useImage(tile_flagged)
-
-  const textures = new Map<
-    TileType,
-    [undefined | HTMLImageElement, 'loaded' | 'loading' | 'failed']
-  >([
-    [TileType.ZERO, useImage(tile_0)],
-    [TileType.ONE, useImage(tile_1)],
-    [TileType.TWO, useImage(tile_2)],
-    [TileType.THREE, useImage(tile_3)],
-    [TileType.FOUR, useImage(tile_4)],
-    [TileType.FIVE, useImage(tile_5)],
-    [TileType.SIX, useImage(tile_6)],
-    [TileType.SEVEN, useImage(tile_7)],
-    [TileType.EIGHT, useImage(tile_8)],
+  const textures = new Map([
+    [TileType.ZERO, tile0],
+    [TileType.ONE, tile1],
+    [TileType.TWO, tile2],
+    [TileType.THREE, tile3],
+    [TileType.FOUR, tile4],
+    [TileType.FIVE, tile5],
+    [TileType.SIX, tile6],
+    [TileType.SEVEN, tile7],
+    [TileType.EIGHT, tile8],
+    [TileType.MINE, tileMine],
   ])
 
   function useTap(e: KonvaEventObject<MouseEvent>) {
@@ -54,18 +63,37 @@ export function Tile({ tile }: props) {
       return
     }
 
-    const texture = textures.get(tile.type)
-    if (!texture) {
-      throw new Error('texture not found')
+    if (!tile.isOpened) {
+      setImage(unopenedTexture)
+      return
     }
 
-    const [actualTexture] = texture
-    setImage(actualTexture)
+    const texture = textures.get(tile.type)
+    if (!texture) {
+      throw new Error(`texture "${tile.type}" not found`)
+    }
+
+    setImage(texture)
   }
 
   React.useEffect(() => {
     setImage(unopenedTexture)
-  }, [unopenedTextureLoaded == 'loaded'])
+  }, [
+    [
+      unopenedTextureLoaded,
+      flagLoaded,
+      tile0Loaded,
+      tile1Loaded,
+      tile2Loaded,
+      tile3Loaded,
+      tile4Loaded,
+      tile5Loaded,
+      tile6Loaded,
+      tile7Loaded,
+      tile8Loaded,
+      tileMineLoaded,
+    ].every((v) => v == 'loaded'),
+  ])
 
   return (
     <Image

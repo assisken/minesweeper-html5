@@ -3,6 +3,7 @@ export interface Tile {
     readonly row: number
     readonly column: number
     readonly type: TileType
+    readonly isOpened: boolean
     readonly isFlagged: boolean
 
     onClick(click: ClickParam): void
@@ -27,6 +28,7 @@ export class Mine implements Tile {
     readonly column: number
     readonly type: TileType = TileType.MINE
     isFlagged = false
+    isOpened = false
 
     constructor(id: number, row: number, column: number) {
         this.id = id
@@ -51,6 +53,7 @@ export class Number implements Tile {
     type: TileType
 
     isFlagged = false
+    isOpened = false
 
     constructor(id: number, row: number, column: number, type: TileType) {
         this.id = id
@@ -60,8 +63,17 @@ export class Number implements Tile {
     }
 
     onClick(click: ClickParam): void {
-        if (click == ClickParam.RIGHT) {
-            this.isFlagged = true;
+        if (this.isOpened) {
+            return
         }
+
+        if (click == ClickParam.RIGHT) {
+            this.isFlagged = this.isFlagged ? false : true;
+        }
+        if (click == ClickParam.LEFT) {
+            this.isOpened = true
+            this.isFlagged = false
+        }
+
     }
 }

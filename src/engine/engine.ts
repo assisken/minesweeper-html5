@@ -1,4 +1,4 @@
-import { Mine, Tile } from "./tile";
+import { Tile, TileType, Number } from "./tile";
 
 export class Engine {
     private field: Tile[][]
@@ -11,7 +11,7 @@ export class Engine {
             this.field[row] = [];
 
             for (var col: number = 0; col < cols; col++) {
-                this.field[row][col] = new Mine(id, row, col);
+                this.field[row][col] = new Number(id, row, col, TileType.ONE);
 
                 id++;
             }

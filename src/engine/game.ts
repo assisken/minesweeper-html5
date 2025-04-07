@@ -1,0 +1,137 @@
+import { Tile, TileImpl } from "./tile";
+
+type Board = Tile[][]
+
+type GameParameters = {
+    readonly rows: number
+    readonly columns: number
+    readonly totalMines: number
+}
+
+export class Game {
+    private readonly cols: number
+    private readonly rows: number
+    private board: Tile[][]
+
+    constructor(params: GameParameters) {
+        this.cols = params.columns
+        this.rows = params.rows
+
+        const firstClickX = 0
+        const firstClickY = 0
+
+        this.board = this.createEmptyBoard()
+        this.placeMines(params.totalMines, firstClickX, firstClickY)
+        this.calculateAdjacents()
+    }
+
+    onRender(field: (tile: Tile) => void): void {
+        for (const v of this.board) {
+            for (const tile of v) {
+                field(tile)
+            }
+        }
+    }
+
+    onTileTriggered(x: number, y: number): void {
+        this.revealCell(x, y)
+    }
+
+    createEmptyBoard(): Board {
+        let board: Board = []
+        let id = 0;
+        const tileTypes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        for (var col: number = 0; col < this.cols; col++) {
+            board[col] = [];
+
+            for (var row: number = 0; row < this.rows; row++) {
+                const random = Math.floor(Math.random() * tileTypes.length);
+                board[col][row] = new TileImpl({
+                    id: id,
+                    row: col,
+                    column: row,
+                    isFlagged: false,
+                    isMine: false,
+                    isRevealed: false,
+                    adjacentMines: random,
+                }, this);
+
+                id++;
+            }
+        }
+
+        return board
+    }
+
+    getNeighbors(x: number, y: number): [number, number][] {
+        const neighbors: [number, number][] = [];
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue;
+                const nx = x + dx;
+                const ny = y + dy;
+                if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+                    neighbors.push([nx, ny]);
+                }
+            }
+        }
+        return neighbors;
+    }
+
+    placeMines(totalMines: number, safeX: number, safeY: number): void {
+        const safeZone = new Set<string>();
+
+        // Сохраняем safe-зону (первая ячейка и её соседи)
+        for (const [nx, ny] of this.getNeighbors(safeX, safeY)) {
+            safeZone.add(`${nx},${ny}`);
+        }
+        safeZone.add(`${safeX},${safeY}`);
+
+        let placed = 0;
+        while (placed < totalMines) {
+            const x = Math.floor(Math.random() * this.cols);
+            const y = Math.floor(Math.random() * this.rows);
+            const key = `${x},${y}`;
+
+            if (!this.board[x][y].isMine && !safeZone.has(key)) {
+                this.board[x][y].isMine = true;
+                placed++;
+            }
+        }
+    }
+
+    calculateAdjacents(): void {
+        for (let x = 0; x < this.cols; x++) {
+            for (let y = 0; y < this.rows; y++) {
+                if (this.board[x][y].isMine) continue;
+
+                let count = 0;
+                for (const [nx, ny] of this.getNeighbors(x, y)) {
+                    if (this.board[nx][ny].isMine) count++;
+                }
+                this.board[x][y].adjacentMines = count;
+            }
+        }
+    }
+
+    revealCell(x: number, y: number): void {
+        const stack: [number, number][] = [[x, y]];
+
+        while (stack.length > 0) {
+            const [cx, cy] = stack.pop()!;
+            const cell = this.board[cx][cy];
+
+            if (cell.isRevealed || cell.isFlagged) continue;
+            cell.isRevealed = true;
+
+            if (cell.adjacentMines === 0 && !cell.isMine) {
+                for (const [nx, ny] of this.getNeighbors(cx, cy)) {
+                    const neighbor = this.board[nx][ny];
+                    if (!neighbor.isRevealed && !neighbor.isMine) {
+                        stack.push([nx, ny]);
+                    }
+                }
+            }
+        }
+    }
+}

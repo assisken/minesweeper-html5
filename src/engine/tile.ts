@@ -1,44 +1,17 @@
+import { Game } from "./game"
+
 export interface Tile {
     readonly id: number
     readonly row: number
     readonly column: number
-    readonly type: TileType
-    readonly isOpened: boolean
     readonly isFlagged: boolean
 
-    onClick(click: ClickParam): void
-}
+    isRevealed: boolean
+    adjacentMines: number
+    isMine: boolean
 
-export enum TileType {
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
-    MINE,
-}
-
-export class Mine implements Tile {
-    readonly id: number
-    readonly row: number
-    readonly column: number
-    readonly type: TileType = TileType.MINE
-    isFlagged = false
-    isOpened = false
-
-    constructor(id: number, row: number, column: number) {
-        this.id = id
-        this.row = row
-        this.column = column
-    }
-
-    onClick(): void {
-
-    }
+    readonly game: Game
+    onTrigger(click: ClickParam): void
 }
 
 export enum ClickParam {
@@ -46,24 +19,44 @@ export enum ClickParam {
     RIGHT
 }
 
-export class Number implements Tile {
-    id: number
-    row: number
-    column: number
-    type: TileType
+export type TileParams = {
+    readonly id: number
+    readonly row: number
+    readonly column: number
 
-    isFlagged = false
-    isOpened = false
+    readonly isMine: boolean;
+    readonly adjacentMines: number;
 
-    constructor(id: number, row: number, column: number, type: TileType) {
-        this.id = id
-        this.row = row
-        this.column = column
-        this.type = type
+    isRevealed: boolean;
+    isFlagged: boolean;
+}
+
+export class TileImpl implements Tile {
+    readonly id: number
+    readonly row: number
+    readonly column: number
+    readonly adjacentMines: number
+
+    isRevealed: boolean
+    isFlagged: boolean
+    isMine: boolean
+
+    readonly game: Game
+
+    constructor(params: TileParams, game: Game) {
+        this.id = params.id
+        this.row = params.row
+        this.column = params.column
+        this.adjacentMines = params.adjacentMines
+        this.isRevealed = params.isRevealed
+        this.isFlagged = params.isFlagged
+        this.isMine = params.isMine
+
+        this.game = game
     }
 
-    onClick(click: ClickParam): void {
-        if (this.isOpened) {
+    onTrigger(click: ClickParam): void {
+        if (this.isRevealed) {
             return
         }
 
@@ -71,9 +64,7 @@ export class Number implements Tile {
             this.isFlagged = this.isFlagged ? false : true;
         }
         if (click == ClickParam.LEFT) {
-            this.isOpened = true
-            this.isFlagged = false
+            this.game.onTileTriggered(this.row, this.column)
         }
-
     }
 }

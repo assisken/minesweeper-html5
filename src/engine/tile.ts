@@ -57,14 +57,19 @@ export class TileImpl implements Tile {
 
     onTrigger(click: ClickParam): void {
         if (this.isRevealed) {
+            this.game.onRevealNeighbors(this)
+            return
+        }
+        if (this.isFlagged && ClickParam.LEFT) {
             return
         }
 
         if (click == ClickParam.RIGHT) {
             this.isFlagged = this.isFlagged ? false : true;
+            this.game.onTileTriggered(this)
+            return
         }
-        if (click == ClickParam.LEFT) {
-            this.game.onTileTriggered(this.row, this.column)
-        }
+
+        this.game.onReveal(this)
     }
 }

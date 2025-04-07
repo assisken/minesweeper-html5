@@ -1,5 +1,4 @@
 import { Image } from 'react-konva'
-import React from 'react'
 import { ClickParam, Tile as GameTile } from '../engine/tile'
 
 import { KonvaEventObject } from 'konva/lib/Node'

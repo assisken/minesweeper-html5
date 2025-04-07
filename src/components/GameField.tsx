@@ -1,7 +1,7 @@
-import { Game } from '../engine/game'
+import { GameImpl } from '../engine/game'
 import { Tile as GameTile } from '../engine/tile'
 import { Tile } from './Tile'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 
 import unopened from '../assets/svg/Minesweeper_unopened_square.svg'
 import tile_0 from '../assets/svg/Minesweeper_0.svg'
@@ -25,7 +25,7 @@ type Props = {
 }
 
 export function GameField(props: Props) {
-    const engine = new Game(
+    const engine = new GameImpl(
         {
             rows: props.rows,
             columns: props.columns,
@@ -95,11 +95,11 @@ export function GameField(props: Props) {
     ])
 
     function getTexture(tile: GameTile): CanvasImageSource {
-        if (!tile.isRevealed) {
-            return unopenedTexture!
-        }
         if (tile.isFlagged) {
             return flagTexture!
+        }
+        if (!tile.isRevealed) {
+            return unopenedTexture!
         }
         if (tile.isMine) {
             return mineTexture!

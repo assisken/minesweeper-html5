@@ -10,7 +10,13 @@ type GameParameters = {
 
 type renderCallback = (ids: Tile[]) => void
 
-export class Game {
+export interface Game {
+    onTileTriggered(tile: Tile): void
+    onReveal(tile: Tile): void
+    onRevealNeighbors(tile: Tile): void
+}
+
+export class GameImpl implements Game {
     private readonly cols: number
     private readonly rows: number
     private board: Tile[][]
@@ -38,8 +44,23 @@ export class Game {
         }
     }
 
-    onTileTriggered(x: number, y: number): void {
-        const revealed = this.revealCell(x, y)
+    onTileTriggered(tile: Tile): void {
+        this.renderCallback([tile])
+    }
+
+    onReveal(tile: Tile): void {
+        const revealed = this.revealCell(tile.row, tile.column)
+        this.renderCallback(revealed)
+    }
+
+    onRevealNeighbors(tile: Tile): void {
+        const neighbors = this.getNeighbors(tile.row, tile.column)
+
+        let revealed: Tile[] = []
+        for (const [x, y] of neighbors) {
+            revealed.push(...this.revealCell(x, y))
+        }
+
         this.renderCallback(revealed)
     }
 

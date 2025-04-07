@@ -33,7 +33,6 @@ export class GameImpl implements Game {
     }
 
     constructor(params: GameParameters) {
-        console.log('hi im new')
         this.columns = params.columns
         this.rows = params.rows
         this.totalMines = params.totalMines
@@ -50,7 +49,6 @@ export class GameImpl implements Game {
     }
 
     handleFirstClick(firstTile: Tile) {
-        console.log(this.firstClickHappened)
         this.firstClickHappened = true
 
         this.board = this.createEmptyBoard()

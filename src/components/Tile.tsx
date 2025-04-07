@@ -54,28 +54,6 @@ export function Tile({ tile }: props) {
     [TileType.MINE, tileMine],
   ])
 
-  function useTap(e: KonvaEventObject<MouseEvent>) {
-    const clickParam = e.evt.button == 2 ? ClickParam.RIGHT : ClickParam.LEFT
-    tile.onClick(clickParam)
-
-    if (tile.isFlagged) {
-      setImage(flagTexture)
-      return
-    }
-
-    if (!tile.isOpened) {
-      setImage(unopenedTexture)
-      return
-    }
-
-    const texture = textures.get(tile.type)
-    if (!texture) {
-      throw new Error(`texture "${tile.type}" not found`)
-    }
-
-    setImage(texture)
-  }
-
   React.useEffect(() => {
     setImage(unopenedTexture)
   }, [
@@ -94,6 +72,28 @@ export function Tile({ tile }: props) {
       tileMineLoaded,
     ].every((v) => v == 'loaded'),
   ])
+
+  function useTap(e: KonvaEventObject<MouseEvent>) {
+    const clickParam = e.evt.button == 2 ? ClickParam.RIGHT : ClickParam.LEFT
+    tile.onClick(clickParam)
+
+    if (tile.isFlagged) {
+      setImage(flagTexture)
+      return
+    }
+
+    if (!tile.isOpened) {
+      setImage(unopenedTexture)
+      return
+    }
+
+    const texture = textures.get(tile.type)
+    if (!texture) {
+      throw new Error(`texture "${tile.type}" not found in map ${Array.from(textures.keys())}`)
+    }
+
+    setImage(texture)
+  }
 
   return (
     <Image

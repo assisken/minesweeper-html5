@@ -8,14 +8,19 @@ type GameParameters = {
     readonly totalMines: number
 }
 
+type renderCallback = (ids: Tile[]) => void
+
 export class Game {
     private readonly cols: number
     private readonly rows: number
     private board: Tile[][]
 
-    constructor(params: GameParameters) {
+    private readonly renderCallback: renderCallback
+
+    constructor(params: GameParameters, renderCallback: renderCallback) {
         this.cols = params.columns
         this.rows = params.rows
+        this.renderCallback = renderCallback
 
         const firstClickX = 0
         const firstClickY = 0
@@ -34,7 +39,8 @@ export class Game {
     }
 
     onTileTriggered(x: number, y: number): void {
-        this.revealCell(x, y)
+        const revealed = this.revealCell(x, y)
+        this.renderCallback(revealed)
     }
 
     createEmptyBoard(): Board {
@@ -114,17 +120,19 @@ export class Game {
         }
     }
 
-    revealCell(x: number, y: number): void {
+    revealCell(x: number, y: number): Tile[] {
         const stack: [number, number][] = [[x, y]];
+        const revealedTiles: Tile[] = []
 
         while (stack.length > 0) {
             const [cx, cy] = stack.pop()!;
-            const cell = this.board[cx][cy];
+            const tile = this.board[cx][cy];
 
-            if (cell.isRevealed || cell.isFlagged) continue;
-            cell.isRevealed = true;
+            if (tile.isRevealed || tile.isFlagged) continue;
+            tile.isRevealed = true;
+            revealedTiles.push(tile)
 
-            if (cell.adjacentMines === 0 && !cell.isMine) {
+            if (tile.adjacentMines === 0 && !tile.isMine) {
                 for (const [nx, ny] of this.getNeighbors(cx, cy)) {
                     const neighbor = this.board[nx][ny];
                     if (!neighbor.isRevealed && !neighbor.isMine) {
@@ -133,5 +141,7 @@ export class Game {
                 }
             }
         }
+
+        return revealedTiles
     }
 }

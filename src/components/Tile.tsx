@@ -3,6 +3,7 @@ import { ClickParam, Tile as GameTile } from '../engine/tile'
 import { Game } from '../engine/game'
 
 import { KonvaEventObject } from 'konva/lib/Node'
+import { useRef } from 'react'
 
 type Props = {
     tile: GameTile
@@ -15,9 +16,25 @@ const width = 20
 const height = 20
 
 export function Tile(props: Props) {
-    function useTap(e: KonvaEventObject<MouseEvent>) {
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    function onMouseClick(e: KonvaEventObject<MouseEvent>) {
         const clickParam = e.evt.button == 2 ? ClickParam.RIGHT : ClickParam.LEFT
         props.game.onClick(props.tile, clickParam)
+    }
+
+    function onTouchStart() {
+        timeoutRef.current = setTimeout(() => {
+            props.game.onClick(props.tile, ClickParam.RIGHT)
+        }, 500)
+    }
+
+    function onTouchEnd() {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+            timeoutRef.current = null
+            props.game.onClick(props.tile, ClickParam.LEFT)
+        }
     }
 
     return (
@@ -27,7 +44,9 @@ export function Tile(props: Props) {
             width={width}
             height={height}
             image={props.texture}
-            onMouseDown={useTap}
+            onMouseDown={onMouseClick}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
         />
     )
 }

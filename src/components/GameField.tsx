@@ -19,21 +19,10 @@ import { useImage } from 'react-konva-utils'
 import React from 'react'
 
 type Props = {
-    rows: number
-    columns: number
-    totalMines: number
+    game: GameImpl
 }
 
 export function GameField(props: Props) {
-    const engine = new GameImpl(
-        {
-            rows: props.rows,
-            columns: props.columns,
-            totalMines: props.totalMines,
-        },
-        updateById
-    )
-
     const [unopenedTexture, unopenedTextureLoaded] = useImage(unopened)
     const [flagTexture, flagLoaded] = useImage(tile_flagged)
     const [mineTexture, tileMineLoaded] = useImage(tile_mine)
@@ -61,19 +50,17 @@ export function GameField(props: Props) {
     ])
 
     function updateById(tiles: GameTile[]): void {
-        const newField = field.map((tile) => {
-            for (const t of tiles) {
-                if (tile.id == t.id) {
-                    return t
-                }
-            }
-            return tile
-        })
+        const newField = [...field]
+        for (const tile of tiles) {
+            newField[tile.id] = tile
+        }
         updateField(newField)
     }
 
-    const f: GameTile[] = new Array(props.columns * props.rows)
-    engine.onRender((tile) => (f[tile.id] = tile))
+    props.game.setRenderCallback(updateById)
+
+    const f: GameTile[] = new Array(props.game.columns * props.game.rows)
+    props.game.onRender((tile) => (f[tile.id] = tile))
 
     const [field, updateField] = useState(f)
 
@@ -110,7 +97,13 @@ export function GameField(props: Props) {
     return (
         <>
             {field.map((tile) => (
-                <Tile key={tile.id} tile={tile} isRevealed={true} texture={getTexture(tile)} />
+                <Tile
+                    key={tile.id}
+                    tile={tile}
+                    isRevealed={tile.isRevealed}
+                    texture={getTexture(tile)}
+                    game={props.game}
+                />
             ))}
         </>
     )

@@ -1,4 +1,4 @@
-import { Tile, TileImpl } from "./tile";
+import { ClickParam, Tile, TileImpl } from "./tile";
 
 type Board = Tile[][]
 
@@ -6,6 +6,7 @@ type GameParameters = {
     readonly rows: number
     readonly columns: number
     readonly totalMines: number
+    readonly withSaveSpot: boolean
 }
 
 type renderCallback = (ids: Tile[]) => void
@@ -14,26 +15,54 @@ export interface Game {
     onTileTriggered(tile: Tile): void
     onReveal(tile: Tile): void
     onRevealNeighbors(tile: Tile): void
+    onClick(tile: Tile, mouseButton: ClickParam): void
 }
 
 export class GameImpl implements Game {
-    private readonly cols: number
-    private readonly rows: number
+    public readonly columns: number
+    public readonly rows: number
+    private readonly totalMines: number
+
     private board: Tile[][]
+    private firstClickHappened: boolean
 
-    private readonly renderCallback: renderCallback
+    private renderCallback: renderCallback | undefined = undefined
 
-    constructor(params: GameParameters, renderCallback: renderCallback) {
-        this.cols = params.columns
-        this.rows = params.rows
+    setRenderCallback(renderCallback: renderCallback) {
         this.renderCallback = renderCallback
+    }
 
-        const firstClickX = 0
-        const firstClickY = 0
+    constructor(params: GameParameters) {
+        console.log('hi im new')
+        this.columns = params.columns
+        this.rows = params.rows
+        this.totalMines = params.totalMines
 
         this.board = this.createEmptyBoard()
-        this.placeMines(params.totalMines, firstClickX, firstClickY)
+
+        if (params.withSaveSpot) {
+            this.firstClickHappened = false
+        } else {
+            this.firstClickHappened = true
+            this.placeMines(this.totalMines, 0, 0)
+            this.calculateAdjacents()
+        }
+    }
+
+    handleFirstClick(firstTile: Tile) {
+        console.log(this.firstClickHappened)
+        this.firstClickHappened = true
+
+        this.board = this.createEmptyBoard()
+        this.placeMines(this.totalMines, firstTile.row, firstTile.column)
         this.calculateAdjacents()
+        this.renderCallback!(this.board.flat())
+    }
+
+    onClick(tile: Tile, clickButton: ClickParam) {
+        if (!this.firstClickHappened) this.handleFirstClick(tile)
+
+        tile.onTrigger(clickButton)
     }
 
     onRender(field: (tile: Tile) => void): void {
@@ -45,12 +74,12 @@ export class GameImpl implements Game {
     }
 
     onTileTriggered(tile: Tile): void {
-        this.renderCallback([tile])
+        this.renderCallback!([tile])
     }
 
     onReveal(tile: Tile): void {
         const revealed = this.revealCell(tile.row, tile.column)
-        this.renderCallback(revealed)
+        this.renderCallback!(revealed)
     }
 
     onRevealNeighbors(tile: Tile): void {
@@ -61,18 +90,16 @@ export class GameImpl implements Game {
             revealed.push(...this.revealCell(x, y))
         }
 
-        this.renderCallback(revealed)
+        this.renderCallback!(revealed)
     }
 
     createEmptyBoard(): Board {
         let board: Board = []
         let id = 0;
-        const tileTypes = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        for (var col: number = 0; col < this.cols; col++) {
+        for (var col: number = 0; col < this.columns; col++) {
             board[col] = [];
 
             for (var row: number = 0; row < this.rows; row++) {
-                const random = Math.floor(Math.random() * tileTypes.length);
                 board[col][row] = new TileImpl({
                     id: id,
                     row: col,
@@ -80,7 +107,7 @@ export class GameImpl implements Game {
                     isFlagged: false,
                     isMine: false,
                     isRevealed: false,
-                    adjacentMines: random,
+                    adjacentMines: 1,
                 }, this);
 
                 id++;
@@ -97,7 +124,7 @@ export class GameImpl implements Game {
                 if (dx === 0 && dy === 0) continue;
                 const nx = x + dx;
                 const ny = y + dy;
-                if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+                if (nx >= 0 && nx < this.columns && ny >= 0 && ny < this.rows) {
                     neighbors.push([nx, ny]);
                 }
             }
@@ -116,7 +143,7 @@ export class GameImpl implements Game {
 
         let placed = 0;
         while (placed < totalMines) {
-            const x = Math.floor(Math.random() * this.cols);
+            const x = Math.floor(Math.random() * this.columns);
             const y = Math.floor(Math.random() * this.rows);
             const key = `${x},${y}`;
 
@@ -128,7 +155,7 @@ export class GameImpl implements Game {
     }
 
     calculateAdjacents(): void {
-        for (let x = 0; x < this.cols; x++) {
+        for (let x = 0; x < this.columns; x++) {
             for (let y = 0; y < this.rows; y++) {
                 if (this.board[x][y].isMine) continue;
 
@@ -151,6 +178,7 @@ export class GameImpl implements Game {
 
             if (tile.isRevealed || tile.isFlagged) continue;
             tile.isRevealed = true;
+            tile.mineEvent()
             revealedTiles.push(tile)
 
             if (tile.adjacentMines === 0 && !tile.isMine) {

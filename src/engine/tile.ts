@@ -12,6 +12,7 @@ export interface Tile {
 
     readonly game: Game
     onTrigger(click: ClickParam): void
+    mineEvent(): void
 }
 
 export enum ClickParam {
@@ -53,6 +54,12 @@ export class TileImpl implements Tile {
         this.isMine = params.isMine
 
         this.game = game
+    }
+
+    mineEvent() {
+        if (!this.isMine) return
+
+        console.log('game over')
     }
 
     onTrigger(click: ClickParam): void {

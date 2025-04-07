@@ -26,7 +26,7 @@ export function Tile(props: Props) {
     function onTouchStart() {
         timeoutRef.current = setTimeout(() => {
             props.game.onClick(props.tile, ClickParam.RIGHT)
-        }, 500)
+        }, 300)
     }
 
     function onTouchEnd() {

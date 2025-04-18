@@ -1,5 +1,5 @@
 import { GameImpl } from '../engine/game'
-import { TileImpl as GameTile } from '../engine/tile'
+import { TileImpl as GameTile, TileType as GameTileType } from '../engine/tile'
 import { Tile } from './Tile'
 import { useState } from 'react'
 
@@ -14,7 +14,7 @@ import tile_5 from '../assets/cells/cell5.svg'
 import tile_6 from '../assets/cells/cell6.svg'
 import tile_7 from '../assets/cells/cell7.svg'
 import tile_8 from '../assets/cells/cell8.svg'
-import tile_mine from '../assets/cells/mine_red.svg'
+import tile_mine from '../assets/cells/mine.svg'
 import tile_flagged from '../assets/cells/flag.svg'
 import { useImage } from 'react-konva-utils'
 import React from 'react'
@@ -40,18 +40,6 @@ export function GameField(props: Props) {
     const [tile6, tile6Loaded] = useImage(tile_6)
     const [tile7, tile7Loaded] = useImage(tile_7)
     const [tile8, tile8Loaded] = useImage(tile_8)
-
-    const textures = new Map([
-        [0, tile0],
-        [1, tile1],
-        [2, tile2],
-        [3, tile3],
-        [4, tile4],
-        [5, tile5],
-        [6, tile6],
-        [7, tile7],
-        [8, tile8],
-    ])
 
     function updateById(tiles: GameTile[]): void {
         const newField = [...field]
@@ -86,20 +74,39 @@ export function GameField(props: Props) {
         ].every((v) => v == 'loaded'),
     ])
 
-    function getTexture(tile: GameTile): CanvasImageSource {
-        if (tile.isPressed) {
-            return pressedTexture!
+    function getTexture(tileType: GameTileType): CanvasImageSource {
+        switch (tileType) {
+            case GameTileType.PRESSED:
+                return pressedTexture!
+            case GameTileType.FLAG:
+                return flagTexture!
+            case GameTileType.CLOSED:
+                return closedTexture!
+            case GameTileType.MINE:
+                return mineTexture!
+            case GameTileType.ZERO:
+                return tile0!
+            case GameTileType.ONE:
+                return tile1!
+            case GameTileType.TWO:
+                return tile2!
+            case GameTileType.THREE:
+                return tile3!
+            case GameTileType.FOUR:
+                return tile4!
+            case GameTileType.FIVE:
+                return tile5!
+            case GameTileType.SIX:
+                return tile6!
+            case GameTileType.SEVEN:
+                return tile7!
+            case GameTileType.EIGHT:
+                return tile8!
+            case GameTileType.MINE:
+                return mineTexture!
+            default:
+                return closedTexture!
         }
-        if (tile.isFlagged) {
-            return flagTexture!
-        }
-        if (!tile.isRevealed) {
-            return closedTexture!
-        }
-        if (tile.isMine) {
-            return mineTexture!
-        }
-        return textures.get(tile.adjacentMines)!
     }
 
     return (
@@ -113,7 +120,7 @@ export function GameField(props: Props) {
                     key={tile.id}
                     tile={tile}
                     isRevealed={tile.isRevealed}
-                    texture={getTexture(tile)}
+                    texture={getTexture(tile.type)}
                     game={props.game}
                 />
             ))}

@@ -1,4 +1,4 @@
-import { ClickParam, Tile, TileImpl } from "./tile";
+import { OpenType, Tile, TileImpl } from "./tile";
 
 type Board = TileImpl[][]
 
@@ -15,7 +15,7 @@ export interface Game {
     onTileTriggered(tile: TileImpl): void
     updateTile(tile: TileImpl): void
     triggerNeighbors(tile: TileImpl, neighborUpdate: (tile: Tile) => void): void
-    onClick(tile: TileImpl, mouseButton: ClickParam): void
+    onClick(tile: TileImpl, mouseButton: OpenType): void
 }
 
 export class GameImpl implements Game {
@@ -57,7 +57,7 @@ export class GameImpl implements Game {
         this.renderCallback!(this.board.flat())
     }
 
-    onClick(tile: TileImpl, clickButton: ClickParam) {
+    onClick(tile: TileImpl, clickButton: OpenType) {
         if (!this.firstClickHappened) this.handleFirstClick(tile)
 
         tile.trigger(clickButton)
@@ -76,19 +76,16 @@ export class GameImpl implements Game {
     }
 
     updateTile(tile: TileImpl): void {
-        const revealed = this.updateCell(tile.row, tile.column, (tile) => {
-            tile.isRevealed = true
-            tile.isPressed = false
-        })
+        const revealed = this.updateCell(tile.row, tile.column)
         this.renderCallback!(revealed)
     }
 
-    triggerNeighbors(tile: TileImpl, neighborUpdate: (tile: Tile) => void): void {
+    triggerNeighbors(tile: TileImpl): void {
         const neighbors = this.getNeighbors(tile.row, tile.column)
 
         let revealed: TileImpl[] = []
         for (const [x, y] of neighbors) {
-            revealed.push(...this.updateCell(x, y, neighborUpdate))
+            revealed.push(...this.updateCell(x, y))
         }
 
         this.renderCallback!(revealed)
@@ -169,7 +166,7 @@ export class GameImpl implements Game {
         }
     }
 
-    updateCell(x: number, y: number, update: (tile: TileImpl) => void): TileImpl[] {
+    updateCell(x: number, y: number): TileImpl[] {
         const stack: [number, number][] = [[x, y]];
         const revealedTiles: TileImpl[] = []
 
@@ -178,7 +175,7 @@ export class GameImpl implements Game {
             const tile = this.board[cx][cy];
 
             if (tile.isRevealed || tile.isFlagged) continue;
-            update(tile)
+            tile.isRevealed = true
             tile.mineEvent()
             revealedTiles.push(tile)
 

@@ -1,5 +1,5 @@
 import { Image } from 'react-konva'
-import { ClickParam, TileImpl as GameTile } from '../engine/tile'
+import { OpenType, TileImpl as GameTile } from '../engine/tile'
 import { Game } from '../engine/game'
 
 import { KonvaEventObject } from 'konva/lib/Node'
@@ -20,18 +20,20 @@ type Props = {
 export function Tile(props: Props) {
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    function onMouseDown() {
-        return props.game.onClick(props.tile, ClickParam.PRESS)
+    function onMouseDown(e: KonvaEventObject<MouseEvent>) {
+        const openType = e.evt.button == 2 ? OpenType.FLAG : OpenType.PRESS
+        return props.game.onClick(props.tile, openType)
     }
 
     function onMouseClick(e: KonvaEventObject<MouseEvent>) {
-        const clickParam = e.evt.button == 2 ? ClickParam.RIGHT : ClickParam.LEFT
-        props.game.onClick(props.tile, clickParam)
+        const openType = e.evt.button == 2 ? OpenType.FLAG : OpenType.REVEAL
+        if (openType == OpenType.FLAG) return
+        props.game.onClick(props.tile, openType)
     }
 
     function onTouchStart() {
         timeoutRef.current = setTimeout(() => {
-            props.game.onClick(props.tile, ClickParam.RIGHT)
+            props.game.onClick(props.tile, OpenType.FLAG)
         }, 300)
     }
 
@@ -39,7 +41,7 @@ export function Tile(props: Props) {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current)
             timeoutRef.current = null
-            props.game.onClick(props.tile, ClickParam.LEFT)
+            props.game.onClick(props.tile, OpenType.REVEAL)
         }
     }
 

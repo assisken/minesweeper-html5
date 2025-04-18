@@ -1,12 +1,30 @@
 import { Game } from "./game"
 
 export interface Tile {
-    trigger(click: ClickParam): void
+    readonly type: TileType
+    trigger(click: OpenType): void
 }
 
-export enum ClickParam {
-    LEFT,
-    RIGHT,
+export enum TileType {
+    ZERO = 0,
+    ONE = 1,
+    TWO = 2,
+    THREE = 3,
+    FOUR = 4,
+    FIVE = 5,
+    SIX = 6,
+    SEVEN = 7,
+    EIGHT = 8,
+    PRESSED,
+    FLAG,
+    CLOSED,
+    MINE,
+    RED_MINE,
+}
+
+export enum OpenType {
+    REVEAL,
+    FLAG,
     PRESS,
 }
 
@@ -47,32 +65,50 @@ export class TileImpl implements Tile {
         this.game = game
     }
 
+
+    public get type(): TileType {
+        if (this.isFlagged) {
+            return TileType.FLAG
+        }
+        if (this.isPressed) {
+            return TileType.PRESSED
+        }
+        if (!this.isRevealed) {
+            return TileType.CLOSED
+        }
+        if (this.isMine) {
+            return TileType.MINE
+        }
+        return this.adjacentMines
+    }
+
+
     mineEvent() {
         if (!this.isMine) return
 
         console.log('game over')
     }
 
-    trigger(click: ClickParam): void {
-        if (this.isRevealed && click == ClickParam.PRESS) {
+    trigger(click: OpenType): void {
+        if (this.isRevealed && click == OpenType.PRESS) {
             this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
             return
         }
-        if (this.isRevealed && click == ClickParam.LEFT) {
+        if (this.isRevealed && click == OpenType.REVEAL) {
             this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
             return
         }
-        if (this.isFlagged && (click == ClickParam.LEFT || click == ClickParam.PRESS)) {
+        if (this.isFlagged && (click == OpenType.REVEAL || click == OpenType.PRESS)) {
             return
         }
 
         switch (click) {
-            case ClickParam.RIGHT:
+            case OpenType.FLAG:
                 this.isFlagged = this.isFlagged ? false : true;
                 this.isPressed = false
                 this.game.onTileTriggered(this)
                 return
-            case ClickParam.PRESS:
+            case OpenType.PRESS:
                 this.isPressed = true
                 this.game.onTileTriggered(this)
                 return

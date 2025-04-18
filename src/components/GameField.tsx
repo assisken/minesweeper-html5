@@ -1,29 +1,33 @@
 import { GameImpl } from '../engine/game'
-import { Tile as GameTile } from '../engine/tile'
+import { TileImpl as GameTile } from '../engine/tile'
 import { Tile } from './Tile'
 import { useState } from 'react'
 
-import unopened from '../assets/svg/Minesweeper_unopened_square.svg'
-import tile_0 from '../assets/svg/Minesweeper_0.svg'
-import tile_1 from '../assets/svg/Minesweeper_1.svg'
-import tile_2 from '../assets/svg/Minesweeper_2.svg'
-import tile_3 from '../assets/svg/Minesweeper_3.svg'
-import tile_4 from '../assets/svg/Minesweeper_4.svg'
-import tile_5 from '../assets/svg/Minesweeper_5.svg'
-import tile_6 from '../assets/svg/Minesweeper_6.svg'
-import tile_7 from '../assets/svg/Minesweeper_7.svg'
-import tile_8 from '../assets/svg/Minesweeper_8.svg'
-import tile_mine from '../assets/svg/Minesweeper_mine.svg'
-import tile_flagged from '../assets/svg/Minesweeper_flag.svg'
+import closed from '../assets/cells/closed.svg'
+import pressed from '../assets/cells/pressed.svg'
+import tile_0 from '../assets/cells/cell0.svg'
+import tile_1 from '../assets/cells/cell1.svg'
+import tile_2 from '../assets/cells/cell2.svg'
+import tile_3 from '../assets/cells/cell3.svg'
+import tile_4 from '../assets/cells/cell4.svg'
+import tile_5 from '../assets/cells/cell5.svg'
+import tile_6 from '../assets/cells/cell6.svg'
+import tile_7 from '../assets/cells/cell7.svg'
+import tile_8 from '../assets/cells/cell8.svg'
+import tile_mine from '../assets/cells/mine_red.svg'
+import tile_flagged from '../assets/cells/flag.svg'
 import { useImage } from 'react-konva-utils'
 import React from 'react'
 
 type Props = {
+    x: number
+    y: number
     game: GameImpl
 }
 
 export function GameField(props: Props) {
-    const [unopenedTexture, unopenedTextureLoaded] = useImage(unopened)
+    const [closedTexture, closedTextureLoaded] = useImage(closed)
+    const [pressedTexture, pressedTextureLoaded] = useImage(pressed)
     const [flagTexture, flagLoaded] = useImage(tile_flagged)
     const [mineTexture, tileMineLoaded] = useImage(tile_mine)
 
@@ -66,7 +70,8 @@ export function GameField(props: Props) {
 
     React.useEffect(() => {}, [
         [
-            unopenedTextureLoaded,
+            closedTextureLoaded,
+            pressedTextureLoaded,
             tileMineLoaded,
             flagLoaded,
             tile0Loaded,
@@ -82,11 +87,14 @@ export function GameField(props: Props) {
     ])
 
     function getTexture(tile: GameTile): CanvasImageSource {
+        if (tile.isPressed) {
+            return pressedTexture!
+        }
         if (tile.isFlagged) {
             return flagTexture!
         }
         if (!tile.isRevealed) {
-            return unopenedTexture!
+            return closedTexture!
         }
         if (tile.isMine) {
             return mineTexture!
@@ -98,6 +106,10 @@ export function GameField(props: Props) {
         <>
             {field.map((tile) => (
                 <Tile
+                    x={props.x + tile.row * 20}
+                    y={props.y + tile.column * 20}
+                    width={20}
+                    height={20}
                     key={tile.id}
                     tile={tile}
                     isRevealed={tile.isRevealed}

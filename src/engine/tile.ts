@@ -1,23 +1,13 @@
 import { Game } from "./game"
 
 export interface Tile {
-    readonly id: number
-    readonly row: number
-    readonly column: number
-    readonly isFlagged: boolean
-
-    isRevealed: boolean
-    adjacentMines: number
-    isMine: boolean
-
-    readonly game: Game
-    onTrigger(click: ClickParam): void
-    mineEvent(): void
+    trigger(click: ClickParam): void
 }
 
 export enum ClickParam {
     LEFT,
-    RIGHT
+    RIGHT,
+    PRESS,
 }
 
 export type TileParams = {
@@ -26,8 +16,8 @@ export type TileParams = {
     readonly column: number
 
     readonly isMine: boolean;
-    readonly adjacentMines: number;
 
+    adjacentMines: number;
     isRevealed: boolean;
     isFlagged: boolean;
 }
@@ -36,11 +26,12 @@ export class TileImpl implements Tile {
     readonly id: number
     readonly row: number
     readonly column: number
-    readonly adjacentMines: number
 
+    adjacentMines: number
     isRevealed: boolean
     isFlagged: boolean
     isMine: boolean
+    isPressed: boolean = false
 
     readonly game: Game
 
@@ -62,21 +53,32 @@ export class TileImpl implements Tile {
         console.log('game over')
     }
 
-    onTrigger(click: ClickParam): void {
-        if (this.isRevealed) {
-            this.game.onRevealNeighbors(this)
+    trigger(click: ClickParam): void {
+        if (this.isRevealed && click == ClickParam.PRESS) {
+            this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
             return
         }
-        if (this.isFlagged && ClickParam.LEFT) {
+        if (this.isRevealed && click == ClickParam.LEFT) {
+            this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
+            return
+        }
+        if (this.isFlagged && (click == ClickParam.LEFT || click == ClickParam.PRESS)) {
             return
         }
 
-        if (click == ClickParam.RIGHT) {
-            this.isFlagged = this.isFlagged ? false : true;
-            this.game.onTileTriggered(this)
-            return
+        switch (click) {
+            case ClickParam.RIGHT:
+                this.isFlagged = this.isFlagged ? false : true;
+                this.isPressed = false
+                this.game.onTileTriggered(this)
+                return
+            case ClickParam.PRESS:
+                this.isPressed = true
+                this.game.onTileTriggered(this)
+                return
         }
+        this.isPressed = false
 
-        this.game.onReveal(this)
+        this.game.updateTile(this)
     }
 }

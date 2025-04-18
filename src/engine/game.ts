@@ -1,6 +1,6 @@
 import { ClickParam, Tile, TileImpl } from "./tile";
 
-type Board = Tile[][]
+type Board = TileImpl[][]
 
 type GameParameters = {
     readonly rows: number
@@ -9,13 +9,13 @@ type GameParameters = {
     readonly withSaveSpot: boolean
 }
 
-type renderCallback = (ids: Tile[]) => void
+type renderCallback = (ids: TileImpl[]) => void
 
 export interface Game {
-    onTileTriggered(tile: Tile): void
-    onReveal(tile: Tile): void
-    onRevealNeighbors(tile: Tile): void
-    onClick(tile: Tile, mouseButton: ClickParam): void
+    onTileTriggered(tile: TileImpl): void
+    updateTile(tile: TileImpl): void
+    triggerNeighbors(tile: TileImpl, neighborUpdate: (tile: Tile) => void): void
+    onClick(tile: TileImpl, mouseButton: ClickParam): void
 }
 
 export class GameImpl implements Game {
@@ -23,7 +23,7 @@ export class GameImpl implements Game {
     public readonly rows: number
     private readonly totalMines: number
 
-    private board: Tile[][]
+    private board: TileImpl[][]
     private firstClickHappened: boolean
 
     private renderCallback: renderCallback | undefined = undefined
@@ -48,7 +48,7 @@ export class GameImpl implements Game {
         }
     }
 
-    handleFirstClick(firstTile: Tile) {
+    handleFirstClick(firstTile: TileImpl) {
         this.firstClickHappened = true
 
         this.board = this.createEmptyBoard()
@@ -57,13 +57,13 @@ export class GameImpl implements Game {
         this.renderCallback!(this.board.flat())
     }
 
-    onClick(tile: Tile, clickButton: ClickParam) {
+    onClick(tile: TileImpl, clickButton: ClickParam) {
         if (!this.firstClickHappened) this.handleFirstClick(tile)
 
-        tile.onTrigger(clickButton)
+        tile.trigger(clickButton)
     }
 
-    onRender(field: (tile: Tile) => void): void {
+    onRender(field: (tile: TileImpl) => void): void {
         for (const v of this.board) {
             for (const tile of v) {
                 field(tile)
@@ -71,21 +71,24 @@ export class GameImpl implements Game {
         }
     }
 
-    onTileTriggered(tile: Tile): void {
+    onTileTriggered(tile: TileImpl): void {
         this.renderCallback!([tile])
     }
 
-    onReveal(tile: Tile): void {
-        const revealed = this.revealCell(tile.row, tile.column)
+    updateTile(tile: TileImpl): void {
+        const revealed = this.updateCell(tile.row, tile.column, (tile) => {
+            tile.isRevealed = true
+            tile.isPressed = false
+        })
         this.renderCallback!(revealed)
     }
 
-    onRevealNeighbors(tile: Tile): void {
+    triggerNeighbors(tile: TileImpl, neighborUpdate: (tile: Tile) => void): void {
         const neighbors = this.getNeighbors(tile.row, tile.column)
 
-        let revealed: Tile[] = []
+        let revealed: TileImpl[] = []
         for (const [x, y] of neighbors) {
-            revealed.push(...this.revealCell(x, y))
+            revealed.push(...this.updateCell(x, y, neighborUpdate))
         }
 
         this.renderCallback!(revealed)
@@ -166,16 +169,16 @@ export class GameImpl implements Game {
         }
     }
 
-    revealCell(x: number, y: number): Tile[] {
+    updateCell(x: number, y: number, update: (tile: TileImpl) => void): TileImpl[] {
         const stack: [number, number][] = [[x, y]];
-        const revealedTiles: Tile[] = []
+        const revealedTiles: TileImpl[] = []
 
         while (stack.length > 0) {
             const [cx, cy] = stack.pop()!;
             const tile = this.board[cx][cy];
 
             if (tile.isRevealed || tile.isFlagged) continue;
-            tile.isRevealed = true;
+            update(tile)
             tile.mineEvent()
             revealedTiles.push(tile)
 

@@ -1,5 +1,5 @@
 import { GameImpl } from '../engine/game'
-import { TileImpl as GameTile, TileType as GameTileType } from '../engine/tile'
+import { Tile as GameTile, TileType as GameTileType } from '../engine/tile'
 import { Tile } from './Tile'
 import { useState } from 'react'
 

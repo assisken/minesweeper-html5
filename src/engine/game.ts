@@ -1,6 +1,6 @@
-import { OpenType, Tile, TileImpl } from "./tile";
+import { OpenType, Tile } from "./tile";
 
-type Board = TileImpl[][]
+type Board = Tile[][]
 
 type GameParameters = {
     readonly rows: number
@@ -9,13 +9,11 @@ type GameParameters = {
     readonly withSaveSpot: boolean
 }
 
-type renderCallback = (ids: TileImpl[]) => void
+type renderCallback = (ids: Tile[]) => void
 
 export interface Game {
-    onTileTriggered(tile: TileImpl): void
-    updateTile(tile: TileImpl): void
-    triggerNeighbors(tile: TileImpl, neighborUpdate: (tile: Tile) => void): void
-    onClick(tile: TileImpl, mouseButton: OpenType): void
+    triggerNeighbors(tile: Tile, click: OpenType): void
+    onClick(tile: Tile, mouseButton: OpenType): void
 }
 
 export class GameImpl implements Game {
@@ -23,7 +21,7 @@ export class GameImpl implements Game {
     public readonly rows: number
     private readonly totalMines: number
 
-    private board: TileImpl[][]
+    private board: Tile[][]
     private firstClickHappened: boolean
 
     private renderCallback: renderCallback | undefined = undefined
@@ -48,7 +46,7 @@ export class GameImpl implements Game {
         }
     }
 
-    handleFirstClick(firstTile: TileImpl) {
+    handleFirstClick(firstTile: Tile) {
         this.firstClickHappened = true
 
         this.board = this.createEmptyBoard()
@@ -57,13 +55,14 @@ export class GameImpl implements Game {
         this.renderCallback!(this.board.flat())
     }
 
-    onClick(tile: TileImpl, clickButton: OpenType) {
+    onClick(tile: Tile, clickButton: OpenType) {
         if (!this.firstClickHappened) this.handleFirstClick(tile)
 
-        tile.trigger(clickButton)
+        tile.trigger(clickButton, { chain: false })
+        this.updateTile(tile)
     }
 
-    onRender(field: (tile: TileImpl) => void): void {
+    onRender(field: (tile: Tile) => void): void {
         for (const v of this.board) {
             for (const tile of v) {
                 field(tile)
@@ -71,21 +70,22 @@ export class GameImpl implements Game {
         }
     }
 
-    onTileTriggered(tile: TileImpl): void {
-        this.renderCallback!([tile])
-    }
-
-    updateTile(tile: TileImpl): void {
+    updateTile(tile: Tile): void {
         const revealed = this.updateCell(tile.row, tile.column)
         this.renderCallback!(revealed)
     }
 
-    triggerNeighbors(tile: TileImpl): void {
+    // TODO: add radius to search neighbors. Very useful to avoid some bugs
+    triggerNeighbors(tile: Tile, click: OpenType): void {
         const neighbors = this.getNeighbors(tile.row, tile.column)
 
-        let revealed: TileImpl[] = []
+        let revealed: Tile[] = []
         for (const [x, y] of neighbors) {
             revealed.push(...this.updateCell(x, y))
+        }
+
+        for (const tile of revealed) {
+            tile.trigger(click, { chain: true })
         }
 
         this.renderCallback!(revealed)
@@ -98,7 +98,7 @@ export class GameImpl implements Game {
             board[col] = [];
 
             for (var row: number = 0; row < this.rows; row++) {
-                board[col][row] = new TileImpl({
+                board[col][row] = new Tile({
                     id: id,
                     row: col,
                     column: row,
@@ -166,18 +166,16 @@ export class GameImpl implements Game {
         }
     }
 
-    updateCell(x: number, y: number): TileImpl[] {
+    updateCell(x: number, y: number): Tile[] {
         const stack: [number, number][] = [[x, y]];
-        const revealedTiles: TileImpl[] = []
+        const revealedTiles: Map<number, Tile> = new Map()
 
         while (stack.length > 0) {
             const [cx, cy] = stack.pop()!;
             const tile = this.board[cx][cy];
 
-            if (tile.isRevealed || tile.isFlagged) continue;
-            tile.isRevealed = true
-            tile.mineEvent()
-            revealedTiles.push(tile)
+            if (tile.isRevealed || tile.isFlagged || revealedTiles.has(tile.id)) continue;
+            revealedTiles.set(tile.id, tile)
 
             if (tile.adjacentMines === 0 && !tile.isMine) {
                 for (const [nx, ny] of this.getNeighbors(cx, cy)) {
@@ -189,6 +187,6 @@ export class GameImpl implements Game {
             }
         }
 
-        return revealedTiles
+        return [...revealedTiles.values()]
     }
 }

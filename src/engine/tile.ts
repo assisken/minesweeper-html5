@@ -1,10 +1,5 @@
 import { Game } from "./game"
 
-export interface Tile {
-    readonly type: TileType
-    trigger(click: OpenType): void
-}
-
 export enum TileType {
     ZERO = 0,
     ONE = 1,
@@ -40,7 +35,7 @@ export type TileParams = {
     isFlagged: boolean;
 }
 
-export class TileImpl implements Tile {
+export class Tile {
     readonly id: number
     readonly row: number
     readonly column: number
@@ -82,20 +77,24 @@ export class TileImpl implements Tile {
         return this.adjacentMines
     }
 
-
     mineEvent() {
         if (!this.isMine) return
 
         console.log('game over')
     }
 
-    trigger(click: OpenType): void {
-        if (this.isRevealed && click == OpenType.PRESS) {
-            this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
+    trigger(click: OpenType, options: { chain: boolean }): void {
+        if (!options.chain && !this.isRevealed && this.adjacentMines == 0 && click == OpenType.REVEAL) {
+            this.game.triggerNeighbors(this, click)
             return
         }
-        if (this.isRevealed && click == OpenType.REVEAL) {
-            this.game.triggerNeighbors(this, (tile) => tile.trigger(click))
+
+        if (!options.chain && this.isRevealed && click == OpenType.PRESS) {
+            this.game.triggerNeighbors(this, click)
+            return
+        }
+        if (!options.chain && this.isRevealed && click == OpenType.REVEAL) {
+            this.game.triggerNeighbors(this, click)
             return
         }
         if (this.isFlagged && (click == OpenType.REVEAL || click == OpenType.PRESS)) {
@@ -106,15 +105,13 @@ export class TileImpl implements Tile {
             case OpenType.FLAG:
                 this.isFlagged = this.isFlagged ? false : true;
                 this.isPressed = false
-                this.game.onTileTriggered(this)
                 return
             case OpenType.PRESS:
                 this.isPressed = true
-                this.game.onTileTriggered(this)
                 return
         }
-        this.isPressed = false
 
-        this.game.updateTile(this)
+        this.isPressed = false
+        this.isRevealed = true
     }
 }

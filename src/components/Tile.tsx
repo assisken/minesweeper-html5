@@ -1,5 +1,5 @@
 import { Image } from 'react-konva'
-import { OpenType, TileImpl as GameTile } from '../engine/tile'
+import { OpenType, Tile as GameTile } from '../engine/tile'
 import { Game } from '../engine/game'
 
 import { KonvaEventObject } from 'konva/lib/Node'

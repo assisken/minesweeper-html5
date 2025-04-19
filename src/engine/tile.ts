@@ -61,7 +61,7 @@ export class Tile {
     }
 
 
-    public get type(): TileType {
+    public get visibleType(): TileType {
         if (this.isFlagged) {
             return TileType.FLAG
         }
@@ -71,6 +71,10 @@ export class Tile {
         if (!this.isRevealed) {
             return TileType.CLOSED
         }
+        return this.trueType
+    }
+
+    public get trueType(): TileType {
         if (this.isMine) {
             return TileType.MINE
         }

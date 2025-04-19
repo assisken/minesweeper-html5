@@ -120,7 +120,7 @@ export function GameField(props: Props) {
                     key={tile.id}
                     tile={tile}
                     isRevealed={tile.isRevealed}
-                    texture={getTexture(tile.type)}
+                    texture={getTexture(tile.visibleType)}
                     game={props.game}
                 />
             ))}

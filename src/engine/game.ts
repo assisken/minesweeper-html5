@@ -1,4 +1,4 @@
-import { ActionType, Tile } from "./tile";
+import { ActionType, Tile, TileType } from "./tile";
 
 type Board = Tile[][]
 
@@ -169,7 +169,7 @@ export class GameImpl implements Game {
 
     getUnrevealedCells(x: number, y: number, radius: number): Tile[] {
         const stack: [number, number][] = [[x, y]];
-        const revealedTiles: Map<number, Tile> = new Map()
+        const selectedTiles: Map<number, Tile> = new Map()
 
         while (stack.length > 0) {
             const [cx, cy] = stack.pop()!;
@@ -178,8 +178,11 @@ export class GameImpl implements Game {
             const distance = Math.sqrt(Math.pow(cx - x, 2) + Math.pow(cy - y, 2))
             if (distance >= radius) continue
 
-            if (tile.isRevealed || tile.isFlagged || revealedTiles.has(tile.id)) continue;
-            revealedTiles.set(tile.id, tile)
+            const visibleType = tile.visibleType
+            if (selectedTiles.has(tile.id) || visibleType != TileType.CLOSED && visibleType != TileType.PRESSED && visibleType != TileType.FLAG)
+                continue;
+
+            selectedTiles.set(tile.id, tile)
 
             if (tile.adjacentMines === 0 && !tile.isMine) {
                 for (const [nx, ny] of this.getNeighbors(cx, cy)) {
@@ -191,6 +194,6 @@ export class GameImpl implements Game {
             }
         }
 
-        return [...revealedTiles.values()]
+        return [...selectedTiles.values()]
     }
 }

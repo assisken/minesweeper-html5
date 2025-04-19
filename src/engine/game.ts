@@ -1,4 +1,4 @@
-import { OpenType, Tile } from "./tile";
+import { ActionType, Tile } from "./tile";
 
 type Board = Tile[][]
 
@@ -12,8 +12,8 @@ type GameParameters = {
 type renderCallback = (ids: Tile[]) => void
 
 export interface Game {
-    triggerNeighbors(tile: Tile, click: OpenType): void
-    onClick(tile: Tile, mouseButton: OpenType): void
+    triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number }): void
+    onClick(tile: Tile, mouseButton: ActionType): void
 }
 
 export class GameImpl implements Game {
@@ -55,7 +55,7 @@ export class GameImpl implements Game {
         this.renderCallback!(this.board.flat())
     }
 
-    onClick(tile: Tile, clickButton: OpenType) {
+    onClick(tile: Tile, clickButton: ActionType) {
         if (!this.firstClickHappened) this.handleFirstClick(tile)
 
         tile.trigger(clickButton, { chain: false })
@@ -71,21 +71,22 @@ export class GameImpl implements Game {
     }
 
     updateTile(tile: Tile): void {
-        const revealed = this.updateCell(tile.row, tile.column)
+        const revealed = this.getUnrevealedCells(tile.row, tile.column, 1)
         this.renderCallback!(revealed)
     }
 
-    // TODO: add radius to search neighbors. Very useful to avoid some bugs
-    triggerNeighbors(tile: Tile, click: OpenType): void {
+    triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number }): void {
+        const radius = options.radius ?? Infinity
         const neighbors = this.getNeighbors(tile.row, tile.column)
+        console.log(neighbors)
 
         let revealed: Tile[] = []
         for (const [x, y] of neighbors) {
-            revealed.push(...this.updateCell(x, y))
+            revealed.push(...this.getUnrevealedCells(x, y, radius))
         }
 
         for (const tile of revealed) {
-            tile.trigger(click, { chain: true })
+            tile.trigger(options.actionType, { chain: true })
         }
 
         this.renderCallback!(revealed)
@@ -166,13 +167,16 @@ export class GameImpl implements Game {
         }
     }
 
-    updateCell(x: number, y: number): Tile[] {
+    getUnrevealedCells(x: number, y: number, radius: number): Tile[] {
         const stack: [number, number][] = [[x, y]];
         const revealedTiles: Map<number, Tile> = new Map()
 
         while (stack.length > 0) {
             const [cx, cy] = stack.pop()!;
             const tile = this.board[cx][cy];
+
+            const distance = Math.sqrt(Math.pow(cx - x, 2) + Math.pow(cy - y, 2))
+            if (distance >= radius) continue
 
             if (tile.isRevealed || tile.isFlagged || revealedTiles.has(tile.id)) continue;
             revealedTiles.set(tile.id, tile)

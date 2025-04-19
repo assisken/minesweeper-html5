@@ -17,7 +17,7 @@ export enum TileType {
     RED_MINE,
 }
 
-export enum OpenType {
+export enum ActionType {
     REVEAL,
     FLAG,
     PRESS,
@@ -83,30 +83,30 @@ export class Tile {
         console.log('game over')
     }
 
-    trigger(click: OpenType, options: { chain: boolean }): void {
-        if (!options.chain && !this.isRevealed && this.adjacentMines == 0 && click == OpenType.REVEAL) {
-            this.game.triggerNeighbors(this, click)
+    trigger(action: ActionType, options: { chain: boolean }): void {
+        if (!options.chain && !this.isRevealed && this.adjacentMines == 0 && action == ActionType.REVEAL) {
+            this.game.triggerNeighbors(this, { actionType: action })
             return
         }
 
-        if (!options.chain && this.isRevealed && click == OpenType.PRESS) {
-            this.game.triggerNeighbors(this, click)
+        if (!options.chain && this.isRevealed && action == ActionType.PRESS) {
+            this.game.triggerNeighbors(this, { actionType: action, radius: 1 })
             return
         }
-        if (!options.chain && this.isRevealed && click == OpenType.REVEAL) {
-            this.game.triggerNeighbors(this, click)
+        if (!options.chain && this.isRevealed && action == ActionType.REVEAL) {
+            this.game.triggerNeighbors(this, { actionType: action })
             return
         }
-        if (this.isFlagged && (click == OpenType.REVEAL || click == OpenType.PRESS)) {
+        if (this.isFlagged && (action == ActionType.REVEAL || action == ActionType.PRESS)) {
             return
         }
 
-        switch (click) {
-            case OpenType.FLAG:
+        switch (action) {
+            case ActionType.FLAG:
                 this.isFlagged = this.isFlagged ? false : true;
                 this.isPressed = false
                 return
-            case OpenType.PRESS:
+            case ActionType.PRESS:
                 this.isPressed = true
                 return
         }

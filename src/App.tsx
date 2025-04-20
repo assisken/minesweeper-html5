@@ -2,7 +2,8 @@ import './App.css'
 import { GameField } from './components/GameField'
 import { Stage, Layer } from 'react-konva'
 import { GameImpl } from './engine/game'
-import { Header } from './components/header'
+import { Frame } from './components/Frame'
+import { Counter } from './components/Counter'
 
 const urlParams = new URLSearchParams(window.location.search)
 const difficulty = urlParams.get('difficulty')
@@ -46,12 +47,24 @@ const game = new GameImpl({
 })
 
 function App() {
+    const headerHeight = 100
+    const pageWidth = columns * 20 + 24 * 2
+    const pageHeight = rows * 20 + headerHeight
+
     return (
         <main onContextMenu={(e) => e.preventDefault()}>
             <Stage width={window.innerWidth} height={window.innerHeight * 0.8}>
                 <Layer>
-                    <Header x={0} y={0} width={columns * 20} height={100} />
-                    <GameField x={0} y={100} game={game} />
+                    <Frame
+                        x={0}
+                        y={0}
+                        width={pageWidth}
+                        height={pageHeight}
+                        headerHeight={headerHeight}
+                    />
+                    <GameField x={24} y={100} game={game} />
+                    <Counter x={30} y={30} height={40} />
+                    <Counter x={pageWidth - 30} y={30} height={40} alightRight={true} />
                 </Layer>
             </Stage>
         </main>

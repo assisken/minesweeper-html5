@@ -19,7 +19,6 @@ import tile_red_mine from '../assets/cells/mine_red.svg'
 import tile_flagged from '../assets/cells/flag.svg'
 import { useImage } from 'react-konva-utils'
 import React from 'react'
-import { Counter } from './Counter'
 
 type Props = {
     x: number

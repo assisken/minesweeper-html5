@@ -9,11 +9,12 @@ type GameParameters = {
     readonly withSaveSpot: boolean
 }
 
-type renderCallback = (ids: Tile[]) => void
+type renderCallback = (ids: Iterable<Tile>) => void
 
 export interface Game {
-    triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number }): void
+    triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number, ignoreClosed?: boolean }): void
     onClick(tile: Tile, mouseButton: ActionType): void
+    gameOver(): void
 }
 
 export class GameImpl implements Game {
@@ -23,6 +24,7 @@ export class GameImpl implements Game {
 
     private board: Tile[][]
     private firstClickHappened: boolean
+    private mines: Set<Tile> = new Set()
 
     private renderCallback: renderCallback | undefined = undefined
 
@@ -58,7 +60,7 @@ export class GameImpl implements Game {
     onClick(tile: Tile, clickButton: ActionType) {
         if (!this.firstClickHappened) this.handleFirstClick(tile)
 
-        tile.trigger(clickButton, { chain: false })
+        tile.trigger(clickButton, {})
         this.updateTile(tile)
     }
 
@@ -78,7 +80,6 @@ export class GameImpl implements Game {
     triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number }): void {
         const radius = options.radius ?? Infinity
         const neighbors = this.getNeighbors(tile.row, tile.column)
-        console.log(neighbors)
 
         let revealed: Tile[] = []
         for (const [x, y] of neighbors) {
@@ -90,6 +91,13 @@ export class GameImpl implements Game {
         }
 
         this.renderCallback!(revealed)
+    }
+
+    gameOver() {
+        for (const mine of this.mines) {
+            mine.trigger(ActionType.GAME_OVER, {})
+        }
+        this.renderCallback!(this.mines.values())
     }
 
     createEmptyBoard(): Board {
@@ -160,7 +168,10 @@ export class GameImpl implements Game {
 
                 let count = 0;
                 for (const [nx, ny] of this.getNeighbors(x, y)) {
-                    if (this.board[nx][ny].isMine) count++;
+                    if (this.board[nx][ny].isMine) {
+                        count++;
+                        this.mines.add(this.board[nx][ny])
+                    }
                 }
                 this.board[x][y].adjacentMines = count;
             }

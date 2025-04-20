@@ -43,7 +43,7 @@ export function GameField(props: Props) {
     const [tile7, tile7Loaded] = useImage(tile_7)
     const [tile8, tile8Loaded] = useImage(tile_8)
 
-    function updateById(tiles: GameTile[]): void {
+    function updateById(tiles: Iterable<GameTile>): void {
         const newField = [...field]
         for (const tile of tiles) {
             newField[tile.id] = tile

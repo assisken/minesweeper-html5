@@ -21,6 +21,7 @@ export enum ActionType {
     REVEAL,
     FLAG,
     PRESS,
+    GAME_OVER
 }
 
 export type TileParams = {
@@ -86,7 +87,7 @@ export class Tile {
         return this.adjacentMines
     }
 
-    trigger(action: ActionType, options: { chain: boolean }): void {
+    trigger(action: ActionType, options: { chain?: boolean }): void {
         // Trigger blob
         if (!options.chain && !this.isRevealed && this.adjacentMines == 0 && action == ActionType.REVEAL) {
             this.game.triggerNeighbors(this, { actionType: action })
@@ -119,9 +120,13 @@ export class Tile {
                 this.isPressed = true
                 if (this.isMine) this.isRedMine = true
                 return
+            case ActionType.GAME_OVER:
+                if (this.isMine) this.isRevealed = true
+                return
         }
 
         this.isPressed = false
         this.isRevealed = true
+        if (this.isMine) this.game.gameOver()
     }
 }

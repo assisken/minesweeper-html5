@@ -184,7 +184,7 @@ export class GameImpl implements Game {
 
             selectedTiles.set(tile.id, tile)
 
-            if (tile.adjacentMines === 0 && !tile.isMine) {
+            if (tile.trueType == TileType.ZERO) {
                 for (const [nx, ny] of this.getNeighbors(cx, cy)) {
                     const neighbor = this.board[nx][ny];
                     if (!neighbor.isRevealed && !neighbor.isMine) {

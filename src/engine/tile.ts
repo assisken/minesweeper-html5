@@ -44,7 +44,9 @@ export class Tile {
     isRevealed: boolean
     isFlagged: boolean
     isMine: boolean
-    isPressed: boolean = false
+
+    private isPressed: boolean = false
+    private isRedMine: boolean = false
 
     readonly game: Game
 
@@ -71,6 +73,9 @@ export class Tile {
         if (!this.isRevealed) {
             return TileType.CLOSED
         }
+        if (this.isRedMine) {
+            return TileType.RED_MINE
+        }
         return this.trueType
     }
 
@@ -81,26 +86,26 @@ export class Tile {
         return this.adjacentMines
     }
 
-    mineEvent() {
-        if (!this.isMine) return
-
-        console.log('game over')
-    }
-
     trigger(action: ActionType, options: { chain: boolean }): void {
+        // Trigger blob
         if (!options.chain && !this.isRevealed && this.adjacentMines == 0 && action == ActionType.REVEAL) {
             this.game.triggerNeighbors(this, { actionType: action })
             return
         }
 
+        // Press effect for neighbor tiles
         if (!options.chain && this.isRevealed && action == ActionType.PRESS) {
             this.game.triggerNeighbors(this, { actionType: action, radius: 1 })
             return
         }
+
+        // Reveal neighbors when press on opened tile
         if (!options.chain && this.isRevealed && action == ActionType.REVEAL) {
             this.game.triggerNeighbors(this, { actionType: action })
             return
         }
+
+        // Breaks all triggers for flagged cell
         if (this.isFlagged && (action == ActionType.REVEAL || action == ActionType.PRESS)) {
             return
         }
@@ -112,6 +117,7 @@ export class Tile {
                 return
             case ActionType.PRESS:
                 this.isPressed = true
+                if (this.isMine) this.isRedMine = true
                 return
         }
 

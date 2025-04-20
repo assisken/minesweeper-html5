@@ -15,6 +15,7 @@ import tile_6 from '../assets/cells/cell6.svg'
 import tile_7 from '../assets/cells/cell7.svg'
 import tile_8 from '../assets/cells/cell8.svg'
 import tile_mine from '../assets/cells/mine.svg'
+import tile_red_mine from '../assets/cells/mine_red.svg'
 import tile_flagged from '../assets/cells/flag.svg'
 import { useImage } from 'react-konva-utils'
 import React from 'react'
@@ -30,6 +31,7 @@ export function GameField(props: Props) {
     const [pressedTexture, pressedTextureLoaded] = useImage(pressed)
     const [flagTexture, flagLoaded] = useImage(tile_flagged)
     const [mineTexture, tileMineLoaded] = useImage(tile_mine)
+    const [redMineTexture, tileRedMineLoaded] = useImage(tile_red_mine)
 
     const [tile0, tile0Loaded] = useImage(tile_0)
     const [tile1, tile1Loaded] = useImage(tile_1)
@@ -61,6 +63,7 @@ export function GameField(props: Props) {
             closedTextureLoaded,
             pressedTextureLoaded,
             tileMineLoaded,
+            tileRedMineLoaded,
             flagLoaded,
             tile0Loaded,
             tile1Loaded,
@@ -84,6 +87,8 @@ export function GameField(props: Props) {
                 return closedTexture!
             case GameTileType.MINE:
                 return mineTexture!
+            case GameTileType.RED_MINE:
+                return redMineTexture!
             case GameTileType.ZERO:
                 return tile0!
             case GameTileType.ONE:

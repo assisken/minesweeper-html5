@@ -26,19 +26,16 @@ export function Counter(props: { x: number; y: number; height: number; alightRig
 
     const [backgroundTexture, backgroundTextureLoaded] = useImage(background)
 
-    let [time, setTime] = useState(0)
-
-    async function timer() {
-        while (true) {
-            await new Promise(() => {
-                console.log(time)
-                setTimeout(() => setTime(time + 1), 1000)
-            })
-        }
-    }
+    const initTime = new Date().getTime()
+    const [seconds, setSeconds] = useState(0)
 
     React.useEffect(() => {
-        timer()
+        var id = setInterval(() => {
+            const timeSpend = seconds + (new Date().getTime() - initTime)
+            const newSeconds = Math.floor(timeSpend / 1000)
+            setSeconds(newSeconds)
+        }, 1000)
+        return () => clearInterval(id)
     }, [[backgroundTextureLoaded].every((v) => v == 'loaded')])
 
     return (
@@ -54,19 +51,19 @@ export function Counter(props: { x: number; y: number; height: number; alightRig
                 x={firstSegment.x}
                 y={firstSegment.y}
                 height={firstSegment.height}
-                displayNumber={Math.floor(time / 100) % 10}
+                displayNumber={Math.floor(seconds / 100) % 10}
             />
             <Segment
                 x={secondSegment.x}
                 y={secondSegment.y}
                 height={secondSegment.height}
-                displayNumber={Math.floor(time / 10) % 10}
+                displayNumber={Math.floor(seconds / 10) % 10}
             />
             <Segment
                 x={thirdSegment.x}
                 y={thirdSegment.y}
                 height={thirdSegment.height}
-                displayNumber={time % 10}
+                displayNumber={seconds % 10}
             />
         </>
     )

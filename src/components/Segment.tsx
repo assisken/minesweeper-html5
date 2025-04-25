@@ -32,6 +32,7 @@ export function Segment(props: { displayNumber: number; x: number; y: number; he
     React.useEffect(() => {
         setTexture(textureByNumber.get(props.displayNumber))
     }, [
+        props.displayNumber,
         [
             display0TextureLoaded,
             display1TextureLoaded,

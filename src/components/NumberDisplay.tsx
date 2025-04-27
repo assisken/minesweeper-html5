@@ -2,12 +2,22 @@ import { Image } from 'react-konva'
 import { useImage } from 'react-konva-utils'
 
 import background from '../assets/display/nums_background.svg'
-import React, { useState } from 'react'
 import { Segment } from './Segment'
+import React, { useState } from 'react'
+import { Observer } from '../engine/observer'
 
-export function Counter(props: { x: number; y: number; height: number; alightRight?: boolean }) {
+export function NumberDisplay(props: {
+    x: number
+    y: number
+    height: number
+    number: Observer<number>
+    alightRight?: boolean
+}) {
     const backgroundProps = { width: 173, height: 108 }
     const backgroundWidth = (props.height / backgroundProps.height) * backgroundProps.width
+
+    const [number, setNumber] = useState(props.number.value)
+    props.number.subscribe((v) => setNumber(v))
 
     function segmentProps(n: number) {
         const segmentPadding = 20
@@ -26,17 +36,7 @@ export function Counter(props: { x: number; y: number; height: number; alightRig
 
     const [backgroundTexture, backgroundTextureLoaded] = useImage(background)
 
-    const initTime = new Date().getTime()
-    const [seconds, setSeconds] = useState(0)
-
-    React.useEffect(() => {
-        var id = setInterval(() => {
-            const timeSpend = seconds + (new Date().getTime() - initTime)
-            const newSeconds = Math.floor(timeSpend / 1000)
-            setSeconds(newSeconds)
-        }, 1000)
-        return () => clearInterval(id)
-    }, [[backgroundTextureLoaded].every((v) => v == 'loaded')])
+    React.useEffect(() => {}, [[backgroundTextureLoaded].every((v) => v == 'loaded')])
 
     return (
         <>
@@ -51,19 +51,19 @@ export function Counter(props: { x: number; y: number; height: number; alightRig
                 x={firstSegment.x}
                 y={firstSegment.y}
                 height={firstSegment.height}
-                displayNumber={Math.floor(seconds / 100) % 10}
+                displayNumber={Math.floor(number / 100) % 10}
             />
             <Segment
                 x={secondSegment.x}
                 y={secondSegment.y}
                 height={secondSegment.height}
-                displayNumber={Math.floor(seconds / 10) % 10}
+                displayNumber={Math.floor(number / 10) % 10}
             />
             <Segment
                 x={thirdSegment.x}
                 y={thirdSegment.y}
                 height={thirdSegment.height}
-                displayNumber={seconds % 10}
+                displayNumber={number % 10}
             />
         </>
     )

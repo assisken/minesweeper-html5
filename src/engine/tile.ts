@@ -113,6 +113,7 @@ export class Tile {
 
         switch (action) {
             case ActionType.FLAG:
+                this.isFlagged ? this.game.removeFlag() : this.game.placeFlag()
                 this.isFlagged = this.isFlagged ? false : true;
                 this.isPressed = false
                 return

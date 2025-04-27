@@ -30,7 +30,12 @@ export function Segment(props: { displayNumber: number; x: number; y: number; he
     const [display9Texture, display9TextureLoaded] = useImage(display9)
 
     React.useEffect(() => {
-        setTexture(textureByNumber.get(props.displayNumber))
+        let number = props.displayNumber
+        if (number < 0) {
+            number = 0
+        }
+
+        setTexture(textureByNumber.get(number))
     }, [
         props.displayNumber,
         [

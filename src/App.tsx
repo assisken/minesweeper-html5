@@ -3,7 +3,9 @@ import { GameField } from './components/GameField'
 import { Stage, Layer } from 'react-konva'
 import { GameImpl } from './engine/game'
 import { Frame } from './components/Frame'
-import { Counter } from './components/Counter'
+import { NumberDisplay } from './components/NumberDisplay'
+import { TimeCounter } from './components/TimeCounter'
+import { ObserverImpl } from './engine/observer'
 
 const urlParams = new URLSearchParams(window.location.search)
 const difficulty = urlParams.get('difficulty')
@@ -39,11 +41,14 @@ switch (difficulty) {
     }
 }
 
+const flagObserver = new ObserverImpl(mines)
+
 const game = new GameImpl({
     rows: rows,
     columns: columns,
     totalMines: mines,
     withSaveSpot: true,
+    flagObserver: flagObserver,
 })
 
 function App() {
@@ -63,8 +68,8 @@ function App() {
                         headerHeight={headerHeight}
                     />
                     <GameField x={24} y={100} game={game} />
-                    <Counter x={30} y={30} height={40} />
-                    <Counter x={pageWidth - 30} y={30} height={40} alightRight={true} />
+                    <NumberDisplay x={30} y={30} height={40} number={flagObserver} />
+                    <TimeCounter x={pageWidth - 30} y={30} height={40} alightRight={true} />
                 </Layer>
             </Stage>
         </main>

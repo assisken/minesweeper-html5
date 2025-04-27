@@ -1,3 +1,4 @@
+import { Observer } from "./observer";
 import { ActionType, Tile, TileType } from "./tile";
 
 type Board = Tile[][]
@@ -7,6 +8,7 @@ type GameParameters = {
     readonly columns: number
     readonly totalMines: number
     readonly withSaveSpot: boolean
+    readonly flagObserver: Observer<number>
 }
 
 type renderCallback = (ids: Iterable<Tile>) => void
@@ -15,12 +17,15 @@ export interface Game {
     triggerNeighbors(tile: Tile, options: { actionType: ActionType, radius?: number, ignoreClosed?: boolean }): void
     onClick(tile: Tile, mouseButton: ActionType): void
     gameOver(): void
+    placeFlag(): void
+    removeFlag(): void
 }
 
 export class GameImpl implements Game {
     public readonly columns: number
     public readonly rows: number
     private readonly totalMines: number
+    public flagsRemaining: Observer<number>
 
     private board: Tile[][]
     private firstClickHappened: boolean
@@ -36,6 +41,7 @@ export class GameImpl implements Game {
         this.columns = params.columns
         this.rows = params.rows
         this.totalMines = params.totalMines
+        this.flagsRemaining = params.flagObserver
 
         this.board = this.createEmptyBoard()
 
@@ -48,6 +54,14 @@ export class GameImpl implements Game {
         }
     }
 
+    placeFlag(): void {
+        this.flagsRemaining.value--
+    }
+
+    removeFlag(): void {
+        this.flagsRemaining.value++
+    }
+
     handleFirstClick(firstTile: Tile) {
         this.firstClickHappened = true
 
@@ -58,7 +72,8 @@ export class GameImpl implements Game {
     }
 
     onClick(tile: Tile, clickButton: ActionType) {
-        if (!this.firstClickHappened) this.handleFirstClick(tile)
+        if (clickButton != ActionType.FLAG && !this.firstClickHappened)
+            this.handleFirstClick(tile)
 
         tile.trigger(clickButton, {})
         this.updateTile(tile)

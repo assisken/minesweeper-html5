@@ -42,6 +42,7 @@ switch (difficulty) {
 }
 
 const flagObserver = new ObserverImpl(mines)
+const isTimerRunningObserver = new ObserverImpl(false)
 
 const game = new GameImpl({
     rows: rows,
@@ -49,6 +50,7 @@ const game = new GameImpl({
     totalMines: mines,
     withSaveSpot: true,
     flagObserver: flagObserver,
+    isTimerRunningObserver: isTimerRunningObserver,
 })
 
 function App() {
@@ -69,7 +71,13 @@ function App() {
                     />
                     <GameField x={24} y={100} game={game} />
                     <NumberDisplay x={30} y={30} height={40} number={flagObserver} />
-                    <TimeCounter x={pageWidth - 30} y={30} height={40} alightRight={true} />
+                    <TimeCounter
+                        x={pageWidth - 30}
+                        y={30}
+                        height={40}
+                        alightRight={true}
+                        isTimerRunningObserver={isTimerRunningObserver}
+                    />
                 </Layer>
             </Stage>
         </main>

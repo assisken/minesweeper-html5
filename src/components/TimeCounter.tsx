@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { NumberDisplay } from './NumberDisplay'
-import { ObserverImpl } from '../engine/observer'
+import { Observer, ObserverImpl } from '../engine/observer'
 
 let initTime = new Date().getTime()
 
@@ -9,17 +9,26 @@ export function TimeCounter(props: {
     y: number
     height: number
     alightRight?: boolean
+    isTimerRunningObserver: Observer<boolean>
 }) {
     const [seconds, setSeconds] = useState(0)
+    const [isTimerRunning, setTimerRunning] = useState(false)
+
+    props.isTimerRunningObserver.subscribe((v) => {
+        initTime = new Date().getTime()
+        setTimerRunning(v)
+    })
 
     const secondsObserver = new ObserverImpl(seconds)
     secondsObserver.subscribe((v) => setSeconds(v))
 
     React.useEffect(() => {
-        var id = setInterval(() => {
-            const millisecondsSpend = seconds + (new Date().getTime() - initTime)
-            secondsObserver.value = Math.floor(millisecondsSpend / 1000)
-        }, 1000)
+        if (isTimerRunning) {
+            var id = setInterval(() => {
+                const millisecondsSpend = seconds + (new Date().getTime() - initTime)
+                secondsObserver.value = Math.floor(millisecondsSpend / 1000)
+            }, 1000)
+        }
         return () => clearInterval(id)
     })
 

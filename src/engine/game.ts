@@ -9,6 +9,7 @@ type GameParameters = {
     readonly totalMines: number
     readonly withSaveSpot: boolean
     readonly flagObserver: Observer<number>
+    readonly isTimerRunningObserver: Observer<boolean>
 }
 
 type renderCallback = (ids: Iterable<Tile>) => void
@@ -25,7 +26,8 @@ export class GameImpl implements Game {
     public readonly columns: number
     public readonly rows: number
     private readonly totalMines: number
-    public flagsRemaining: Observer<number>
+    private flagsRemaining: Observer<number>
+    private isTimerRunningObserver: Observer<boolean>
 
     private board: Tile[][]
     private firstClickHappened: boolean
@@ -42,6 +44,7 @@ export class GameImpl implements Game {
         this.rows = params.rows
         this.totalMines = params.totalMines
         this.flagsRemaining = params.flagObserver
+        this.isTimerRunningObserver = params.isTimerRunningObserver
 
         this.board = this.createEmptyBoard()
 
@@ -69,6 +72,7 @@ export class GameImpl implements Game {
         this.placeMines(this.totalMines, firstTile.row, firstTile.column)
         this.calculateAdjacents()
         this.renderCallback!(this.board.flat())
+        this.isTimerRunningObserver.value = true
     }
 
     onClick(tile: Tile, clickButton: ActionType) {
@@ -112,6 +116,7 @@ export class GameImpl implements Game {
         for (const mine of this.mines) {
             mine.trigger(ActionType.GAME_OVER, {})
         }
+        this.isTimerRunningObserver.value = false
         this.renderCallback!(this.mines.values())
     }
 

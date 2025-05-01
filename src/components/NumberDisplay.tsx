@@ -5,13 +5,14 @@ import background from '../assets/display/nums_background.svg'
 import { Segment } from './Segment'
 import React, { useState } from 'react'
 import { Observer } from '../engine/observer'
+import { Align } from '../types'
 
 export function NumberDisplay(props: {
     x: number
     y: number
     height: number
     number: Observer<number>
-    alightRight?: boolean
+    align: Align
 }) {
     const backgroundProps = { width: 173, height: 108 }
     const backgroundWidth = (props.height / backgroundProps.height) * backgroundProps.width
@@ -23,9 +24,14 @@ export function NumberDisplay(props: {
         const segmentPadding = 20
         const offset = 34
 
+        const { x, y } = props.align(
+            { x: props.x + n * segmentPadding - offset, y: props.y },
+            { x: props.x + n * segmentPadding - offset - backgroundWidth, y: props.y }
+        )
+
         return {
-            x: props.x - (props.alightRight ? backgroundWidth : 0) + n * segmentPadding - offset,
-            y: props.y + 3,
+            x: x,
+            y: y + 3,
             width: 52,
             height: props.height - 6,
         }
@@ -38,11 +44,16 @@ export function NumberDisplay(props: {
 
     React.useEffect(() => {}, [[backgroundTextureLoaded].every((v) => v == 'loaded')])
 
+    const { x, y } = props.align(
+        { x: props.x, y: props.y },
+        { x: props.x - backgroundWidth, y: props.y }
+    )
+
     return (
         <>
             <Image
-                x={props.x - (props.alightRight ? backgroundWidth : 0)}
-                y={props.y}
+                x={x}
+                y={y}
                 width={backgroundWidth}
                 height={props.height}
                 image={backgroundTexture}

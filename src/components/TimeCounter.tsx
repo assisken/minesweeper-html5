@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { NumberDisplay } from './NumberDisplay'
 import { Observer, ObserverImpl } from '../engine/observer'
+import { Align } from '../types'
 
 let initTime = new Date().getTime()
 
@@ -8,7 +9,7 @@ export function TimeCounter(props: {
     x: number
     y: number
     height: number
-    alightRight?: boolean
+    align: Align
     isTimerRunningObserver: Observer<boolean>
 }) {
     const [seconds, setSeconds] = useState(0)
@@ -38,7 +39,7 @@ export function TimeCounter(props: {
             y={props.y}
             height={props.height}
             number={secondsObserver}
-            alightRight={props.alightRight}
+            align={props.align}
         />
     )
 }

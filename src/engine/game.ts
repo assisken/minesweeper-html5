@@ -28,6 +28,7 @@ export class GameImpl implements Game {
     private readonly totalMines: number
     private flagsRemaining: Observer<number>
     private isTimerRunningObserver: Observer<boolean>
+    private handleClicks = true
 
     private board: Tile[][]
     private firstClickHappened: boolean
@@ -76,6 +77,8 @@ export class GameImpl implements Game {
     }
 
     onClick(tile: Tile, clickButton: ActionType) {
+        if (!this.handleClicks) return
+
         if (clickButton != ActionType.FLAG && !this.firstClickHappened)
             this.handleFirstClick(tile)
 
@@ -113,6 +116,7 @@ export class GameImpl implements Game {
     }
 
     gameOver() {
+        this.handleClicks = false
         for (const mine of this.mines) {
             mine.trigger(ActionType.GAME_OVER, {})
         }

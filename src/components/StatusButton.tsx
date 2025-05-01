@@ -22,7 +22,7 @@ export function StatusButton(props: {
 
     const [unpressedTexture, unpressedTextureLoaded] = useImage(face_unpressed)
     const [pressedTexture, pressedTextureLoaded] = useImage(face_pressed)
-    const [loseTexture, loseTextureLoaded] = useImage(face_lose)
+    const [_, loseTextureLoaded] = useImage(face_lose)
     const [winTexture, winTextureLoaded] = useImage(face_win)
 
     props.winObserver.subscribe((v) => {

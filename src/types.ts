@@ -2,7 +2,7 @@ type Point = { x: number, y: number }
 export type Align = (point0: Point, point1: Point) => Point
 
 export namespace Align {
-    export function left(point0: Point, point1: Point): Point {
+    export function left(point0: Point, _: Point): Point {
         return point0
     }
 
@@ -13,7 +13,7 @@ export namespace Align {
         }
     }
 
-    export function right(point0: Point, point1: Point): Point {
+    export function right(_: Point, point1: Point): Point {
         return point1
     }
 }
